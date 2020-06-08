@@ -10,9 +10,16 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.util.AttributeSet;
 import android.util.Log;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.ArrayList;
+
+
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+import android.graphics.Matrix;
 /* Bluetooth Importları */
 
 import android.app.Activity;
@@ -37,6 +44,11 @@ import java.util.UUID;
  * Class which provides the view on which drawing takes place.
  */
 public class DrawingView extends View{
+    int index = 0;
+    float [][] xy = new float [999][999];
+    float[][]coordinates;
+
+    private MainActivity mActivity;
 
     // To hold the path that will be drawn.
     private Path drawPath;
@@ -80,7 +92,15 @@ public class DrawingView extends View{
         lastBrushSize = brushSize;
         drawPaint.setStrokeWidth(brushSize);
     }
-
+    //Elde edilen koordinatlarda null olan değerleri silmek için dinamik dizi oluşturduk.
+    public float[][] createCoordinates(float xy[][], int index){
+        float [][] coords = new float[index][index];
+        for(int i=0; i<index; i ++){
+            coords[i][0] = xy[i][0];
+            coords[i][1] = xy[i][1];
+        }
+        return coords;
+    }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -109,14 +129,29 @@ public class DrawingView extends View{
                 break;
             case MotionEvent.ACTION_MOVE:
                 drawPath.lineTo(touchX, touchY);
-                Log.i("touchX MOVE=" , String.valueOf(touchX));
-                Log.i("touchy MOVE=" , String.valueOf(touchY));
+                index += 1;
+                xy[index-1][0] = touchX;
+                xy[index-1][1] = touchY;
+
+                Log.i("Koordinatlar" , String.valueOf(xy[index-1][0] +".."+ xy[index-1][1])); ; //.add(touchY);
+          //      Log.i("tampon değeri" , String.valueOf(coordinates[0][0]+ "..." +  coordinates[0][1]));
                 break;
             case MotionEvent.ACTION_UP:
                 if (erase){
                     drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
                 }
                 drawCanvas.drawPath(drawPath, drawPaint);
+                coordinates = createCoordinates(xy,index);
+                Log.i("Nihai Koordinat arrayi boyutu =" , String.valueOf(coordinates.length));
+                for(int i=0; i<index; i++){
+                    Log.i("Nihai Koordinat arrayi" ,  String.valueOf(i) +" nci dönüş = " + String.valueOf(coordinates[i][0]+ "..." +  coordinates[i][1]));
+                }
+                try {
+
+                    mActivity.sendData();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 drawPath.reset();
                 drawPaint.setXfermode(null);
                 break;
@@ -156,11 +191,12 @@ public class DrawingView extends View{
         erase = isErase;
         if(erase) {
             drawPaint.setColor(Color.WHITE);
-            //drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         }
         else {
             drawPaint.setColor(previousColor);
             drawPaint.setXfermode(null);
+
         }
     }
 

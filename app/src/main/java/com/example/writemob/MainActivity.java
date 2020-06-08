@@ -5,11 +5,14 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.text.CollationElementIterator;
 import java.util.UUID;
 /* Bluetooth Importları */
 
@@ -29,14 +32,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
-
+import java.util.zip.CheckedOutputStream;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+    private static android.util.Log Log;
+    private static DrawingView mDrawingView;
+    private static TextView myLabel;
+    private static CheckedOutputStream mmmOutputStream;
     /*Bluetooth componentleri*/
     // will show the statuses
-    TextView myLabel;
-
+    TextView mmyLabel;
+    String slm = " nbr ";
     // will enable user to enter any text to be printed
     EditText myTextbox;
     BluetoothAdapter mBluetoothAdapter;
@@ -52,9 +59,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int counter;
     volatile boolean stopWorker;
 
-    private DrawingView mDrawingView;
+    private DrawingView mmDrawingView;
     private ImageButton currPaint, drawButton, eraseButton, newButton;
     private float smallBrush, mediumBrush, largeBrush;
+    private android.util.Log Logg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,24 +236,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /*
      * This will send data to be printed by the bluetooth printer
      */
-    void sendData() throws IOException {
+    public static void trydata() throws IOException{
+        try {
+            String sa = " sl";
+            Log.i("senddata action up çalıştı",sa);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+    public static void sendData() throws IOException {
         try {
 
-            // the text typed by the user
-        /*    String msg = myTextbox.getText().toString();
-            msg += "\n";
-            mmOutputStream.write(msg.getBytes());*/
+            float[][] coordinates = mDrawingView.coordinates;
+            int size = mDrawingView.index;
+            String payload = "";
+            String temp = "";
+            Log.i("senddata action up çalıştı",temp);
 
-
-            // integer yollama denemelerim
-
-            int msg_int = 99;
-            mmOutputStream.write(msg_int);
-
-          //
+           for(int i =0; i<size; i++){
+               temp = String.valueOf(coordinates[i][0]) + "," + String.valueOf(coordinates[i][1]) + ";" ;
+               payload += temp;
+           }
+            Log.i("senddata payload" , payload);
+         //  mmOutputStream.write(payload.getBytes());
+            mmmOutputStream.write(payload.getBytes());
 
             // tell the user data were sent
-            myLabel.setText("Data Sent");
+           // myLabel.setText("Data Sent");
 
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -364,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showNewPaintingAlertDialog(){
         AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
         newDialog.setTitle("New drawing");
-        newDialog.setMessage("Start new drawing (you will lose the current drawing)?");
+        newDialog.setMessage("Start new drawing (you will lose the current drawing)?" + mDrawingView.coordinates.length);
         newDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 mDrawingView.startNew();

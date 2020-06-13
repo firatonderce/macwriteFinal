@@ -44,11 +44,10 @@ import java.util.UUID;
  * Class which provides the view on which drawing takes place.
  */
 public class DrawingView extends View{
-    int index = 0;
-    float [][] xy = new float [999][999];
-    float[][]coordinates;
-
-    private MainActivity mActivity;
+    String coords = "";
+    String coordX = "";
+    String coordY = "";
+    int l;
 
     // To hold the path that will be drawn.
     private Path drawPath;
@@ -71,10 +70,7 @@ public class DrawingView extends View{
         setUpDrawing();
     }
 
-    /**
-     * Initialize all objects required for drawing here.
-     * One time initialization reduces resource consumption.
-     */
+
     private void setUpDrawing(){
         drawPath = new Path();
         drawPaint = new Paint();
@@ -93,14 +89,14 @@ public class DrawingView extends View{
         drawPaint.setStrokeWidth(brushSize);
     }
     //Elde edilen koordinatlarda null olan değerleri silmek için dinamik dizi oluşturduk.
-    public float[][] createCoordinates(float xy[][], int index){
-        float [][] coords = new float[index][index];
-        for(int i=0; i<index; i ++){
-            coords[i][0] = xy[i][0];
-            coords[i][1] = xy[i][1];
-        }
-        return coords;
-    }
+//    public float[][] createCoordinates(float xy[][], int index){
+//        float [][] coords = new float[index][index];
+//        for(int i=0; i<index; i ++){
+//            coords[i][0] = xy[i][0];
+//            coords[i][1] = xy[i][1];
+//        }
+//        return coords;
+//    }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -129,29 +125,25 @@ public class DrawingView extends View{
                 break;
             case MotionEvent.ACTION_MOVE:
                 drawPath.lineTo(touchX, touchY);
-                index += 1;
-                xy[index-1][0] = touchX;
-                xy[index-1][1] = touchY;
-
-                Log.i("Koordinatlar" , String.valueOf(xy[index-1][0] +".."+ xy[index-1][1])); ; //.add(touchY);
-          //      Log.i("tampon değeri" , String.valueOf(coordinates[0][0]+ "..." +  coordinates[0][1]));
+                coordX = String.format("%.2f",(touchX/26));
+                coordY = String.format("%.2f",(touchY/26));
+                coords ="G1 X" + coordX + " " + "Y" + coordY + " " + "F3000.00" + "\n";
+                String b = "G1X29,89Y1,18F3000.00";
+                l = b.length();
+                Log.i("length =", String.valueOf(l));
+              //  String a = "G1 X19.19 Y0.08 F3000.00\n";
+                Log.i("Final Coordinates =" , coords);
+                try {
+                    MainActivity.getInstance().sendData();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 if (erase){
                     drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
                 }
                 drawCanvas.drawPath(drawPath, drawPaint);
-                coordinates = createCoordinates(xy,index);
-                Log.i("Nihai Koordinat arrayi boyutu =" , String.valueOf(coordinates.length));
-                for(int i=0; i<index; i++){
-                    Log.i("Nihai Koordinat arrayi" ,  String.valueOf(i) +" nci dönüş = " + String.valueOf(coordinates[i][0]+ "..." +  coordinates[i][1]));
-                }
-                try {
-
-                    mActivity.sendData();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 drawPath.reset();
                 drawPaint.setXfermode(null);
                 break;
@@ -164,45 +156,8 @@ public class DrawingView extends View{
         return true;
     }
 
-    public void setColor(String newColor){
-        // invalidate the view
-        invalidate();
-        paintColor = Color.parseColor(newColor);
-        drawPaint.setColor(paintColor);
-        previousColor = paintColor;
-    }
 
-    public void setBrushSize(float newSize){
-        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                newSize, getResources().getDisplayMetrics());
-        brushSize=pixelAmount;
-        drawPaint.setStrokeWidth(brushSize);
-    }
 
-    public void setLastBrushSize(float lastSize){
-        lastBrushSize=lastSize;
-    }
-    public float getLastBrushSize(){
-        return lastBrushSize;
-    }
 
-    public void setErase(boolean isErase){
-        //set erase true or false
-        erase = isErase;
-        if(erase) {
-            drawPaint.setColor(Color.WHITE);
-            drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        }
-        else {
-            drawPaint.setColor(previousColor);
-            drawPaint.setXfermode(null);
-
-        }
-    }
-
-    public void startNew(){
-        drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
-        invalidate();
-    }
 }
 

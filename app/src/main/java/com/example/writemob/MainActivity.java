@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.nio.charset.StandardCharsets;
 import java.text.CollationElementIterator;
 import java.util.UUID;
 /* Bluetooth Importları */
@@ -35,7 +36,7 @@ import java.util.UUID;
 import java.util.zip.CheckedOutputStream;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity{
     private static android.util.Log Log;
     private static DrawingView mDrawingView;
     private static TextView myLabel;
@@ -43,7 +44,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /*Bluetooth componentleri*/
     // will show the statuses
     TextView mmyLabel;
-    String slm = " nbr ";
     // will enable user to enter any text to be printed
     EditText myTextbox;
     BluetoothAdapter mBluetoothAdapter;
@@ -56,41 +56,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     byte[] readBuffer;
     int readBufferPosition;
-    int counter;
     volatile boolean stopWorker;
 
     private DrawingView mmDrawingView;
     private ImageButton currPaint, drawButton, eraseButton, newButton;
     private float smallBrush, mediumBrush, largeBrush;
     private android.util.Log Logg;
-
+    private static MainActivity instance;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        instance = this;
         mDrawingView = (DrawingView)findViewById(R.id.drawing);
-        // Getting the initial paint color.
-        LinearLayout paintLayout = (LinearLayout)findViewById(R.id.paint_colors);
-        // 0th child is white color, so selecting first child to give black as initial color.
-        currPaint = (ImageButton)paintLayout.getChildAt(1);
-        currPaint.setImageDrawable(getResources().getDrawable(R.drawable.pallet_pressed));
-        drawButton = (ImageButton) findViewById(R.id.buttonBrush);
-        drawButton.setOnClickListener(this);
-        eraseButton = (ImageButton) findViewById(R.id.buttonErase);
-        eraseButton.setOnClickListener(this);
-        newButton = (ImageButton) findViewById(R.id.buttonNew);
-        newButton.setOnClickListener(this);
-
-        smallBrush = getResources().getInteger(R.integer.small_size);
-        mediumBrush = getResources().getInteger(R.integer.medium_size);
-        largeBrush = getResources().getInteger(R.integer.large_size);
-
-        // Set the initial brush size
-        mDrawingView.setBrushSize(mediumBrush);
 
         try {
-
             // we are goin to have three buttons for specific functions
             Button openButton = (Button) findViewById(R.id.open);
             Button sendButton = (Button) findViewById(R.id.send);
@@ -113,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             sendButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     try {
-                        sendData();
+                        fakedata();
                     } catch (IOException ex) {
                     }
                 }
@@ -125,12 +105,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
     }
+    public static MainActivity getInstance(){
+        return instance;
+    }
     void findBT() {
         try {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
             if (mBluetoothAdapter == null) {
-                myLabel.setText("No bluetooth adapter available");
+                myLabel.setText("Bluetooth baglantisi bulunamadi");
             }
 
             if (!mBluetoothAdapter.isEnabled()) {
@@ -149,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
             }
-            myLabel.setText("Bluetooth Device Found");
+            myLabel.setText("Bluetooth Cihazi bulundu.");
         } catch (NullPointerException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -167,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             beginListenForData();
 
-            myLabel.setText("Bluetooth Opened");
+            myLabel.setText("Bluetooth Baglandi!");
         } catch (NullPointerException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -177,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     void beginListenForData() {
         try {
             final Handler handler = new Handler();
-
             // This is the ASCII code for a newline character
             final byte delimiter = 10;
 
@@ -189,7 +171,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void run() {
                     while (!Thread.currentThread().isInterrupted()
                             && !stopWorker) {
-
                         try {
 
                             int bytesAvailable = mmInputStream.available();
@@ -225,7 +206,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
             });
-
             workerThread.start();
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -236,198 +216,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /*
      * This will send data to be printed by the bluetooth printer
      */
-    public static void trydata() throws IOException{
+    void fakedata() throws IOException{
+        String [] datas = new String[11];
+        datas[0] = "G1 X-19.29 Y112.43 F3500.00\n";
+        datas[1] = "G1 X-19.52 Y110.67 F3500.00\n";
+        datas[2] = "G1 X-19.80 Y97.00 F3500.00\n";
+        datas[3] = "G1 X-20.02 Y-11.01 F3500.00\n";
+      /*  datas[4] = "G1 X-19.90 Y-135.78 F3500.00\n";
+        datas[5] = "G1 X-19.51 Y-136.46 F3500.00\n";
+        datas[6] = "G1 X-18.88 Y-136.58 F3500.00\n";
+        datas[7] = "G1 X-18.63 Y-135.98 F3500.00\n";
+        datas[8] = "G1 X-18.44 Y-133.57 F3500.00\n";
+        datas[9] = "G1 X-18.20 Y-118.35 F3500.00\n";
+        datas[10] = "G1 X-18.08 Y-11.80 F3500.00\n"; */
+        for(int i = 0; i<4 ; i++){
+            mmOutputStream.write(datas[i].getBytes());
+        }
+    }
+    void trydata() throws IOException{
         try {
-            String sa = " sl";
-            Log.i("senddata action up çalıştı",sa);
+            String b = mDrawingView.coords;
+            mmOutputStream.write(b.getBytes());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
     }
-    public static void sendData() throws IOException {
+    public void sendData() throws IOException {
         try {
-
-            float[][] coordinates = mDrawingView.coordinates;
-            int size = mDrawingView.index;
             String payload = "";
-            String temp = "";
-            Log.i("senddata action up çalıştı",temp);
-
-           for(int i =0; i<size; i++){
-               temp = String.valueOf(coordinates[i][0]) + "," + String.valueOf(coordinates[i][1]) + ";" ;
-               payload += temp;
-           }
-            Log.i("senddata payload" , payload);
-         //  mmOutputStream.write(payload.getBytes());
-            mmmOutputStream.write(payload.getBytes());
-
-            // tell the user data were sent
-           // myLabel.setText("Data Sent");
-
+            payload = mDrawingView.coords;
+            Log.i("senddata action up çalıştı",payload);
+            mmOutputStream.write(payload.getBytes()); //StandardCharsets.UTF_8
         } catch (NullPointerException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    /**
-     * Method is called when color is clicked from pallet.
-     * @param view ImageButton on which click took place.
-     */
-    public void paintClicked(View view){
-        if (view != currPaint){
-            // Update the color
-            ImageButton imageButton = (ImageButton) view;
-            String colorTag = imageButton.getTag().toString();
-            mDrawingView.setColor(colorTag);
-            // Swap the backgrounds for last active and currently active image button.
-            imageButton.setImageDrawable(getResources().getDrawable(R.drawable.pallet_pressed));
-            currPaint.setImageDrawable(getResources().getDrawable(R.drawable.pallet));
-            currPaint = (ImageButton)view;
-            mDrawingView.setErase(false);
-            mDrawingView.setBrushSize(mDrawingView.getLastBrushSize());
-        }
-    }
 
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        switch(id){
-            case R.id.buttonBrush:
-                // Show brush size chooser dialog
-                showBrushSizeChooserDialog();
-                break;
-            case R.id.buttonErase:
-                // Show eraser size chooser dialog
-                showEraserSizeChooserDialog();
-                break;
-            case R.id.buttonNew:
-                // Show new painting alert dialog
-                showNewPaintingAlertDialog();
-                break;
-        }
-    }
 
-    private void showBrushSizeChooserDialog(){
-        final Dialog brushDialog = new Dialog(this);
-        brushDialog.setContentView(R.layout.dialog_brush_size);
-        brushDialog.setTitle("Brush size:");
-        ImageButton smallBtn = (ImageButton)brushDialog.findViewById(R.id.small_brush);
-        smallBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDrawingView.setBrushSize(smallBrush);
-                mDrawingView.setLastBrushSize(smallBrush);
-                brushDialog.dismiss();
-            }
-        });
-        ImageButton mediumBtn = (ImageButton)brushDialog.findViewById(R.id.medium_brush);
-        mediumBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDrawingView.setBrushSize(mediumBrush);
-                mDrawingView.setLastBrushSize(mediumBrush);
-                brushDialog.dismiss();
-            }
-        });
 
-        ImageButton largeBtn = (ImageButton)brushDialog.findViewById(R.id.large_brush);
-        largeBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                mDrawingView.setBrushSize(largeBrush);
-                mDrawingView.setLastBrushSize(largeBrush);
-                brushDialog.dismiss();
-            }
-        });
-        mDrawingView.setErase(false);
-        brushDialog.show();
-    }
 
-    private void showEraserSizeChooserDialog(){
-        final Dialog brushDialog = new Dialog(this);
-        brushDialog.setTitle("Eraser size:");
-        brushDialog.setContentView(R.layout.dialog_brush_size);
-        ImageButton smallBtn = (ImageButton)brushDialog.findViewById(R.id.small_brush);
-        smallBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                mDrawingView.setErase(true);
-                mDrawingView.setBrushSize(smallBrush);
-                brushDialog.dismiss();
-            }
-        });
-        ImageButton mediumBtn = (ImageButton)brushDialog.findViewById(R.id.medium_brush);
-        mediumBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDrawingView.setErase(true);
-                mDrawingView.setBrushSize(mediumBrush);
-                brushDialog.dismiss();
-            }
-        });
-        ImageButton largeBtn = (ImageButton)brushDialog.findViewById(R.id.large_brush);
-        largeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDrawingView.setErase(true);
-                mDrawingView.setBrushSize(largeBrush);
-                brushDialog.dismiss();
-            }
-        });
-        brushDialog.show();
-    }
 
-    private void showNewPaintingAlertDialog(){
-        AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
-        newDialog.setTitle("New drawing");
-        newDialog.setMessage("Start new drawing (you will lose the current drawing)?" + mDrawingView.coordinates.length);
-        newDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                mDrawingView.startNew();
-                dialog.dismiss();
-            }
-        });
-        newDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        newDialog.show();
-    }
 
-    private void showSavePaintingConfirmationDialog(){
-        AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
-        saveDialog.setTitle("Save drawing");
-        saveDialog.setMessage("Save drawing to device Gallery?");
-        saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener(){
-            public void onClick(DialogInterface dialog, int which){
-                //save drawing
-                mDrawingView.setDrawingCacheEnabled(true);
-                String imgSaved = MediaStore.Images.Media.insertImage(
-                        getContentResolver(), mDrawingView.getDrawingCache(),
-                        UUID.randomUUID().toString()+".png", "drawing");
-                if(imgSaved!=null){
-                    Toast savedToast = Toast.makeText(getApplicationContext(),
-                            "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
-                    savedToast.show();
-                }
-                else{
-                    Toast unsavedToast = Toast.makeText(getApplicationContext(),
-                            "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
-                    unsavedToast.show();
-                }
-                // Destroy the current cache.
-                mDrawingView.destroyDrawingCache();
-            }
-        });
-        saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
-            public void onClick(DialogInterface dialog, int which){
-                dialog.cancel();
-            }
-        });
-        saveDialog.show();
-    }
+
+
+
+
 
 }

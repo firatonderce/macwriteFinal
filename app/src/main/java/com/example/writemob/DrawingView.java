@@ -48,21 +48,19 @@ public class DrawingView extends View{
     String coordX = "";
     String coordY = "";
     int l;
+    String b = "G1X29,89Y1,18F3000.00";
+    boolean isPenDown = false;
+    String penDownCommand = "M300 S30";
+    String penUpCommand = "M300 S50.00";
 
-    // To hold the path that will be drawn.
+
     private Path drawPath;
-    // Paint object to draw drawPath and drawCanvas.
     private Paint drawPaint, canvasPaint;
-    // initial color
     private int paintColor = 0xff000000;
     private int previousColor = paintColor;
-    // canvas on which drawing takes place.
     private Canvas drawCanvas;
-    // canvas bitmap
     private Bitmap canvasBitmap;
-    // Brush stroke width
     private float brushSize, lastBrushSize;
-    // To enable and disable erasing mode.
     private boolean erase = false;
 
     public DrawingView(Context context, AttributeSet attrs){
@@ -111,39 +109,61 @@ public class DrawingView extends View{
         canvas.drawPath(drawPath, drawPaint);
     }
 
+
+    public void coordFunction(float touchX, float touchY) {
+        coordX = String.format("%.2f",(touchX/26));
+        coordY = String.format("%.2f",(touchY/26));
+        coords ="G1 X" + coordX + " " + "Y"  +coordY + " " + "F3000.00" + "\n";
+        Log.i("coords ====?==" , coords);
+        try {
+            MainActivity.getInstance().penDown();
+            MainActivity.getInstance().sendData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void coordFunction(float touchX, float touchY, boolean penValue) {
+        coordX = String.format("%.2f",(touchX/26));
+        coordY = String.format("%.2f",(touchY/26));
+        coords ="G1 X" + coordX + " " + "Y"  +coordY + " " + "F3000.00" + "\n";
+        Log.i("coords ====?==" , coords);
+        try {
+            MainActivity.getInstance().sendData();
+            if(penValue)
+              MainActivity.getInstance().penDown();
+            else
+              MainActivity.getInstance().penUp();
+            MainActivity.getInstance().penUp();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+//    public void penDownAction(float touchX, float touchY){
+//        MainActivity.getInstance().penDown();
+//        coordX = String.format("%.2f",(touchX/26));
+//        coordY = String.format("%.2f",(touchY/26));
+//        coords ="G1 X" + coordX + " " + "Y"  +coordY + " " + "F3000.00" + "\n";
+//    }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // X and Y position of user touch.
         float touchX = event.getX();
         float touchY = event.getY();
-        // Draw the path according to the touch event taking place.
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                isPenDown = true;
                 drawPath.moveTo(touchX, touchY);
-                Log.i("touchX DOWN =" , String.valueOf(touchX));
-                Log.i("touchy DOWN=" , String.valueOf(touchY));
+                coordFunction(touchX,touchY,isPenDown);
                 break;
             case MotionEvent.ACTION_MOVE:
                 drawPath.lineTo(touchX, touchY);
-                coordX = String.format("%.2f",(touchX/26));
-                coordY = String.format("%.2f",(touchY/26));
-                coords ="G1 X" + coordX + " " + "Y" + coordY + " " + "F3000.00" + "\n";
-                String b = "G1X29,89Y1,18F3000.00";
-                l = b.length();
-                Log.i("length =", String.valueOf(l));
-              //  String a = "G1 X19.19 Y0.08 F3000.00\n";
-                Log.i("Final Coordinates =" , coords);
-                try {
-                    MainActivity.getInstance().sendData();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                coordFunction(touchX,touchY);
                 break;
             case MotionEvent.ACTION_UP:
-                if (erase){
-                    drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                }
                 drawCanvas.drawPath(drawPath, drawPaint);
+                    isPenDown = false;
+                 coordFunction(touchX,touchY,isPenDown);
+
                 drawPath.reset();
                 drawPaint.setXfermode(null);
                 break;
@@ -151,13 +171,8 @@ public class DrawingView extends View{
                 return false;
         }
 
-        // invalidate the view so that canvas is redrawn.
         invalidate();
         return true;
     }
-
-
-
-
 }
 

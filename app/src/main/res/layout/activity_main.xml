@@ -21,22 +21,38 @@
         android:layout_below="@id/label"
         android:background="@android:drawable/editbox_background" />
 
-    <Button
-        android:id="@+id/open"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/entry"
-        android:layout_marginLeft="10dip"
-        android:text="Open" />
+     <Button
+         android:id="@+id/open"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentRight="true"
+         android:layout_below="@id/entry"
+         android:layout_marginLeft="10dip"
+         android:text="Open" />
 
-    <Button
-        android:id="@+id/send"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/open"
-        android:layout_toLeftOf="@id/open"
-        android:text="Send" />
+     <Button
+         android:id="@+id/send"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignTop="@id/open"
+         android:layout_toLeftOf="@id/open"
+         android:text="Send" />
+     <Button
+         android:id="@+id/down"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignTop="@id/down"
+         android:layout_toLeftOf="@id/down"
+         android:text="Down" />
+     <Button
+         android:id="@+id/up"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignTop="@id/up"
+         android:layout_toLeftOf="@id/up"
+         android:text="Up" />
+
+
 
     <LinearLayout
         android:layout_width="wrap_content"

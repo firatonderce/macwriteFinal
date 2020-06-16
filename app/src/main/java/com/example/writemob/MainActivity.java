@@ -44,7 +44,6 @@ public class MainActivity extends AppCompatActivity{
     /*Bluetooth componentleri*/
     // will show the statuses
     TextView mmyLabel;
-    // will enable user to enter any text to be printed
     EditText myTextbox;
     BluetoothAdapter mBluetoothAdapter;
     BluetoothSocket mmSocket;
@@ -71,9 +70,10 @@ public class MainActivity extends AppCompatActivity{
         mDrawingView = (DrawingView)findViewById(R.id.drawing);
 
         try {
-            // we are goin to have three buttons for specific functions
             Button openButton = (Button) findViewById(R.id.open);
             Button sendButton = (Button) findViewById(R.id.send);
+            Button upButton = (Button) findViewById(R.id.up);
+            Button downButton = (Button) findViewById(R.id.down);
 
             myLabel = (TextView) findViewById(R.id.label);
             myTextbox = (EditText) findViewById(R.id.entry);
@@ -88,8 +88,23 @@ public class MainActivity extends AppCompatActivity{
                     }
                 }
             });
+            upButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    try {
+                        penUp();
+                    } catch (IOException ex) {
+                    }
+                }
+            });
+            downButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    try {
+                        penDown();
+                    } catch (IOException ex) {
+                    }
+                }
+            });
 
-            // send data typed by the user to be printed
             sendButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     try {
@@ -141,7 +156,6 @@ public class MainActivity extends AppCompatActivity{
     }
     void openBT() throws IOException {
         try {
-            // Standard SerialPortService ID
             UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
             mmSocket = mmDevice.createRfcommSocketToServiceRecord(uuid);
             mmSocket.connect();
@@ -213,40 +227,70 @@ public class MainActivity extends AppCompatActivity{
             e.printStackTrace();
         }
     }
-    /*
-     * This will send data to be printed by the bluetooth printer
-     */
     void fakedata() throws IOException{
         String [] datas = new String[11];
         datas[0] = "G1 X-19.29 Y112.43 F3500.00\n";
         datas[1] = "G1 X-19.52 Y110.67 F3500.00\n";
         datas[2] = "G1 X-19.80 Y97.00 F3500.00\n";
-        datas[3] = "G1 X-20.02 Y-11.01 F3500.00\n";
-      /*  datas[4] = "G1 X-19.90 Y-135.78 F3500.00\n";
-        datas[5] = "G1 X-19.51 Y-136.46 F3500.00\n";
+        datas[3] = "G1 X20.02 Y-11.01 F3500.00\n";
+        datas[4] = "G1 X19.90 Y-135.78 F3500.00\n";
+        datas[5] = "G1 X19.51 Y-36.46 F3500.00\n";
         datas[6] = "G1 X-18.88 Y-136.58 F3500.00\n";
         datas[7] = "G1 X-18.63 Y-135.98 F3500.00\n";
         datas[8] = "G1 X-18.44 Y-133.57 F3500.00\n";
         datas[9] = "G1 X-18.20 Y-118.35 F3500.00\n";
-        datas[10] = "G1 X-18.08 Y-11.80 F3500.00\n"; */
-        for(int i = 0; i<4 ; i++){
+        datas[10] = "G1 X-18.08 Y-11.80 F3500.00\n";
+        for(int i = 0; i<11 ; i++){
             mmOutputStream.write(datas[i].getBytes());
         }
     }
-    void trydata() throws IOException{
+//    void penDownButton() throws IOException{  //useless
+//        try {
+//            String penDownCommand = mDrawingView.penDownCommand;
+//            mmOutputStream.write(penDownCommand.getBytes());
+//            Log.i("penDown action  çalisti",penDownCommand);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+//    }
+//    void penUpButton() throws IOException{  //useless
+//        try {
+//            String penUpCommand = mDrawingView.penUpCommand;
+//            mmOutputStream.write(penUpCommand.getBytes());
+//            Log.i("penup action  çalisti", penUpCommand);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+//    }
+     void penDown() throws IOException{  //useless
         try {
-            String b = mDrawingView.coords;
-            mmOutputStream.write(b.getBytes());
+            String penDownCommand = mDrawingView.penDownCommand;
+            String payload ="";
+            payload = mDrawingView.coords;
+            mmOutputStream.write(penDownCommand.getBytes());
+            Log.i("penDown action  çalisti",payload);
+            mmOutputStream.write(payload.getBytes()); //StandardCharsets.UTF_8
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
+    }
+    void penUp() throws IOException{  //useless
+        try {
+            String penUpCommand = mDrawingView.penUpCommand;
+            String payload ="";
+            payload = mDrawingView.coords;
+            mmOutputStream.write(penUpCommand.getBytes());
+            Log.i("penUp action  çalisti",payload);
+            mmOutputStream.write(payload.getBytes()); //StandardCharsets.UTF_8
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
     public void sendData() throws IOException {
         try {
             String payload = "";
             payload = mDrawingView.coords;
-            Log.i("senddata action up çalıştı",payload);
+            Log.i("sendData action çalıştı",payload);
             mmOutputStream.write(payload.getBytes()); //StandardCharsets.UTF_8
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -254,15 +298,4 @@ public class MainActivity extends AppCompatActivity{
             e.printStackTrace();
         }
     }
-
-
-
-
-
-
-
-
-
-
-
 }

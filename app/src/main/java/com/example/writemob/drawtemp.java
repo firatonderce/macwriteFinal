@@ -210,3 +210,7 @@
 //    }
 //}
 //
+//  l = b.length();
+//  Log.i("length =", String.valueOf(l)); //
+//  String a = "G1 X19.19 Y0.08 F3000.00\n";
+//  String b = "G1X29,89Y1,18F3000.00";
